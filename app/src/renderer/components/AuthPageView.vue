@@ -18,15 +18,24 @@
 			<p>Your access token is: {{ access_token }}</p>
 		</div>
 
+		<div class="existing" v-if="instances">
+			<router-link to="/instances" class="existing-link">View Instances</router-link>
+		</div>
+
 	</div>
 </template>
 
 <script>
-const { shell, ipcRenderer } = require('electron')
+import { shell, ipcRenderer } from 'electron'
+import { mapGetters } from 'vuex'
 import Mastodon from 'mastodon-api'
 export default {
 
   name: 'auth-page',
+
+	computed: {
+		...mapGetters(['instances'])
+	},
 
   data () {
     return {
@@ -44,43 +53,43 @@ export default {
       Mastodon.getAccessToken(this.client_id, this.client_secret, this.auth_code, this.instance_url)
 			.catch(err => console.error(err))
 			.then((access_token) => {
-  this.access_token = access_token
-  ipcRenderer.send('token-received', {
-    access_token: access_token,
-    instance: this.instance_url,
-    client_id: this.client_id,
-    client_secret: this.client_secret
-  })
+			  this.access_token = access_token
+			  ipcRenderer.send('token-received', {
+			    access_token: access_token,
+			    instance: this.instance_url,
+			    client_id: this.client_id,
+			    client_secret: this.client_secret
+			  })
 
-  this.$store.dispatch('ADD_INSTANCE', {
-    access_token: access_token,
-    instance: this.instance_url
-  })
+			  this.$store.dispatch('ADD_INSTANCE', {
+			    access_token: access_token,
+			    instance: this.instance_url
+			  })
 
-  this.$router.push({
-    name: 'instance-page',
-    params: {
-      instance: this.instance_url
-    }
-  })
-})
+			  this.$router.push({
+			    name: 'instance-page',
+			    params: {
+			      instance: this.instance_url
+			    }
+			  })
+			})
     },
 
     requestAuthLink () {
       Mastodon.createOAuthApp(`${this.instance_url}/api/v1/apps`, 'mastodon-node')
 				.catch(err => console.error(err))
 				.then((res) => {
-  console.log(res)
-  this.client_id = res.client_id
-  this.client_secret = res.client_secret
+				  console.log(res)
+				  this.client_id = res.client_id
+				  this.client_secret = res.client_secret
 
-  return Mastodon.getAuthorizationUrl(res.client_id, res.client_secret, `${this.instance_url}`)
-})
+				  return Mastodon.getAuthorizationUrl(res.client_id, res.client_secret, `${this.instance_url}`)
+				})
 				.then(data => {
-  console.log(data)
-  shell.openExternal(data.url)
-  this.auth_url = data.url
-})
+				  console.log(data)
+				  shell.openExternal(data.url)
+				  this.auth_url = data.url
+				})
     }
   }
 }
@@ -94,6 +103,10 @@ export default {
 	flex-direction: column;
 	font-family: Lato, Helvetica, sans-serif;
 	justify-content: center;
+
+	.existing {
+		margin-top: 15px;
+	}
 
 	.box {
 		background: #313543;

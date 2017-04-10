@@ -1,5 +1,7 @@
 'use strict'
 
+const nedb = require('nedb');
+import path from 'path'
 import { app, BrowserWindow, ipcMain as ipc } from 'electron'
 
 let mainWindow
@@ -8,14 +10,26 @@ const winURL = process.env.NODE_ENV === 'development'
   : `file://${__dirname}/index.html`
 
 function createWindow () {
-  let instances = []
+  const db = new nedb({
+    filename: path.join(app.getPath('userData'), 'fasttoot.db'),
+    autoload: true
+  });
+
+  db.accounts = new nedb({
+    filename: path.join(app.getPath('userData'), 'fasttoot-accounts.db'),
+    autoload: true
+  })
+
+  db.accounts.loadDatabase();
+
+  console.log(db)
 
   /**
    * Initial window options
    */
   mainWindow = new BrowserWindow({
-    height: 600,
-    width: 800
+    height: 800,
+    width: 1000
   })
 
   mainWindow.loadURL(winURL)
@@ -29,11 +43,20 @@ function createWindow () {
 
   ipc.on('token-received', (event, arg) => {
     console.log(arg)
-    instances.push(arg)
+    db.accounts.insert(arg, (err, doc) => {
+      console.log(doc)
+      event.sender.send('token-added', doc)
+    })
+  })
+
+  ipc.on('account-removed', (event, arg) => {
+    db.accounts.find({ instance: arg.instance })
   })
 
   ipc.on('vue-loaded', (event, arg) => {
-    event.sender.send('instances-retrieve', instances)
+    let accounts = db.accounts.find({}, (err, docs) => {
+      event.sender.send('instances-retrieve', docs)
+    })
   })
 }
 
