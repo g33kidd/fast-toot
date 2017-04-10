@@ -11,7 +11,7 @@ const mutations = {
     state.instances = payload
   },
 
-  REMOVE_INSTANCE (state) {
+  RECEIVE_TOOTS (state, payload) {
 
   }
 }

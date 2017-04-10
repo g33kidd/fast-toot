@@ -1,11 +1,11 @@
 <template lang="html">
-  <div>
-    <router-link to="/auth">Add Account</router-link>
+  <div class="instance-view">
+    <!-- <router-link to="/auth">Add Account</router-link>
     <h1>This is where you will Toot!</h1>
     <h3>{{ $route.params.instance }}</h3>
-    <h2 v-if="account">Welcome, @{{ account.username }}</h2>
+    <h2 v-if="account">Welcome, @{{ account.username }}</h2> -->
 
-    <home-toots :mastodon="mastodon" v-if="mastodon" />
+    <home-toots class="home-toots" :mastodon="mastodon" v-if="mastodon" />
   </div>
 </template>
 
@@ -50,8 +50,13 @@ export default {
 }
 </script>
 
-<style lang="css">
-div {
+<style lang="scss">
+.instance-view {
+  display: flex;
   color: #fff;
+
+  .home-toots {
+    flex: 1;
+  }
 }
 </style>
